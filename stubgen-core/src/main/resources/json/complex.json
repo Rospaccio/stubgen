@@ -1,0 +1,15 @@
+{
+	"objectList" :
+	[
+		{
+			"stringField1" : "taken from JSON file",
+			"stringField2" : "this is taken from JSON too",
+			"calendar" : "2012-06-01",
+			"detail" : 
+			{
+				"description" : "detail description from JSON",
+				"valid" : "false"
+			}
+		}
+	]
+}

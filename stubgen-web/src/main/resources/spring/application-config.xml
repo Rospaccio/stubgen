@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+	<!-- Uncomment and add your base-package here: -->
+	<context:component-scan base-package="org.merka.stubgen.web" />
+
+	<context:annotation-config />
+
+	<security:http auto-config='true'>
+		<security:intercept-url pattern="/app/**"
+			access="ROLE_USER" />
+		<security:http-basic/>
+	</security:http>
+
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<security:user-service>
+				<security:user name="merka" password="05750575" authorities="ROLE_USER, ROLE_ADMIN" />
+				<security:user name="guest" password="guest" authorities="ROLE_USER" />
+			</security:user-service>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+	<bean id="jarManager" class="org.merka.stubgen.web.session.JarManager"
+		scope="singleton">
+	</bean>
+
+	<bean id="messageManager" class="org.merka.stubgen.web.session.MessageManager"
+		scope="singleton">
+	</bean>
+
+</beans>

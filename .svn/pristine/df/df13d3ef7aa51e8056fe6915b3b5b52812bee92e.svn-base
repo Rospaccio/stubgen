@@ -1,0 +1,269 @@
+package org.merka.stubgen;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+
+import org.merka.stubgen.exception.MockGenException;
+import org.merka.stubgen.exception.NotBlockingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class MockObjectGenerator
+{
+	public static final int DEFAULT_NESTING_VALUE = 10;
+	public static final int DEFAULT_ARRAY_LENGTH = 3;
+	public static final String DEFAULT_DTO_PACKAGE = "org.merka.stubgen.test";
+	
+	private static transient Logger logger = LoggerFactory.getLogger(MockObjectGenerator.class);
+
+	protected Package dtoPackage;
+
+	protected Package getDtoPackage()
+	{
+		return dtoPackage;
+	}
+
+	protected void setDtoPackage(Package dtoPackage)
+	{
+		this.dtoPackage = dtoPackage;
+	}
+
+	public MockObjectGenerator()
+	{
+		Package dtoPack = Package.getPackage(DEFAULT_DTO_PACKAGE);
+		setDtoPackage(dtoPack);
+	}
+
+	public Object generate(Class<?> theClass) throws MockGenException
+	{
+		return generate(theClass, DEFAULT_NESTING_VALUE);
+	}
+
+	protected <GeneratedType> GeneratedType generateInstance(Class<?> GeneratedType, int nestingLevel) throws MockGenException
+	{
+		try
+		{
+			Object mock = null;
+			// switch through the possible cases of T
+			if(GeneratedType.isPrimitive())
+			{
+				if(GeneratedType.equals(boolean.class))
+				{
+					mock = true;
+				}
+				else if(GeneratedType.equals(int.class) || GeneratedType.equals(long.class) || GeneratedType.equals(short.class) || GeneratedType.equals(byte.class)
+						|| GeneratedType.equals(char.class) || GeneratedType.equals(double.class) || GeneratedType.equals(float.class))
+				{
+					mock = 0;
+				}
+				return (GeneratedType)mock;
+			}
+			
+			if(nestingLevel == 0)
+			{
+				return (GeneratedType)mock;
+			}
+			
+			else if(GeneratedType.isEnum())
+			{
+				mock = GeneratedType.getEnumConstants()[0];
+			}
+			else if(GeneratedType.isArray())
+			{
+				Object[] array = (Object[])Array.newInstance(GeneratedType.getComponentType(), DEFAULT_ARRAY_LENGTH);
+				for(int i = 0; i < DEFAULT_ARRAY_LENGTH; i++)
+				{
+					Object element = generate(GeneratedType.getComponentType(), nestingLevel - 1);
+//					array[i] = element; // this works too
+					Array.set(array, i, element);
+				}
+				mock = array;
+			}
+			else if (MockGenUtils.isList(GeneratedType))
+			{
+//				if((Type)GeneratedType instanceof ParameterizedType)
+//				{
+//					
+//					ParameterizedType parameterizedType = (ParameterizedType)((Type)GeneratedType);
+//					Class<?> componentType = (Class<?>)parameterizedType.getActualTypeArguments()[0];
+//					
+//					Object element = generate(componentType, nestingLevel - 1);
+//					
+//					ArrayList list = new ArrayList();
+//					list.add(element);
+//					
+//					mock = list;
+//					
+//				}
+			}
+			else 
+			{
+				IInstantiator instantiator = InstantiatorFactory.getInstantiator(GeneratedType);
+				try
+				{
+					mock = instantiator.newInstance(GeneratedType);
+				}
+				catch(NotBlockingException e)
+				{
+					String message = "Exception of type: " + e.getClass().getName() + " in generateInstance.";
+					logger.warn("Exception of type: " + e.getClass().getName() + " in generateInstance.");
+					if (logger.isDebugEnabled())
+					{
+						logger.debug("Full exception: ", e);
+					}
+				}
+			}
+			
+			return (GeneratedType)mock;
+		}
+		catch(Throwable t)
+		{
+			throw new MockGenException(t);
+		}		
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void setFields(Object mock, int nestingLevel) throws MockGenException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		if (mock == null)
+		{
+			return;
+		}
+		Method[] methodArray = mock.getClass().getDeclaredMethods();
+		for (Method method : methodArray)
+		{
+			if (MockGenUtils.isSetter(method))
+			{
+				Class<?> paramType = method.getParameterTypes()[0];
+				try
+				{
+					Object param = null;
+					if (isMockable(paramType))
+					{
+						param = generate(paramType, nestingLevel - 1);
+					}
+					else if (MockGenUtils.isList(paramType))
+					{									
+						ArrayList list = new ArrayList();
+						for(int i = 0; i < DEFAULT_ARRAY_LENGTH; i++)
+						{
+							Object element = generate( (Class<?>)(((ParameterizedType)method.getGenericParameterTypes()[0]).getActualTypeArguments()[0]) );
+							list.add(element);
+						}
+						param = list;
+					}
+					else
+					{
+						param = generateInstance(paramType, nestingLevel - 1);
+					}
+					try
+					{
+						method.invoke(mock, param);
+					}
+					catch (Throwable t)
+					{
+						System.err.println("\n\n\n Class: " + paramType.getName() + "; method: " + method.getName());
+						throw new MockGenException(t);
+					}
+				}
+				catch (NotBlockingException e)
+				{
+					// TODO how to handle this exception?
+				}
+			}
+		}
+	}
+
+	private boolean isMockable(Class<?> generatedType)
+	{
+		if (generatedType != null && generatedType.getPackage() != null && generatedType.getPackage().getName() != null && getDtoPackage() != null)
+		{
+			return generatedType.getPackage().getName().equals(getDtoPackage().getName());
+		}
+		return false;
+	}
+
+	public <T> T generate(Class<?> T, int nestingLevel) throws MockGenException
+	{
+		try
+		{
+			T mock = generateInstance(T, nestingLevel);
+			setFields(mock, nestingLevel);
+
+			return mock;
+		}
+		catch (Throwable t)
+		{
+			throw new MockGenException(t);
+		}
+	}
+	
+	public <T> T generate(T prototype) throws MockGenException
+	{
+		try
+		{
+			Class<?> theClass = prototype.getClass();
+
+			T mock = (T) generate(theClass);
+
+			Method[] protoMethodArray = theClass.getDeclaredMethods();
+			for (Method prototypeMethod : protoMethodArray)
+			{
+				if (MockGenUtils.isGetter(prototypeMethod))
+				{
+					// find the correspondent setter method
+					String namePart;
+					if (prototypeMethod.getName().startsWith("is"))
+					{
+						namePart = prototypeMethod.getName().substring(2);
+					}
+					else
+					{
+						namePart = prototypeMethod.getName().substring(3);
+					}
+					String setterName = "set" + namePart;
+					Class<?> returnType = prototypeMethod.getReturnType();
+
+					try
+					{
+						Method setterMethod = theClass.getMethod(setterName, returnType);
+						Object param = prototypeMethod.invoke(prototype, (Object[]) null);
+
+						if (param != null)
+						{
+							setterMethod.invoke(mock, prototypeMethod.invoke(prototype, (Object[]) null));
+						}
+					}
+					catch (NoSuchMethodError ne)
+					{
+
+					}
+				}
+			}
+
+			return mock;
+		}
+		catch (Throwable t)
+		{
+			throw new MockGenException(t);
+		}
+	}
+
+//	protected Object loadJSON() throws MockGenException
+//	{
+//		try
+//		{
+//			ObjectMapper mapper = new ObjectMapper();
+//			TestObject prototype = mapper.readValue("json/mockgen-templates.json", TestObject.class);
+//			return generate(prototype);
+//		}
+//		catch (Throwable t)
+//		{
+//			throw new MockGenException(t);
+//		}
+//	}
+
+}

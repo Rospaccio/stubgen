@@ -1,0 +1,82 @@
+package org.merka.stubgen.web.test.integration;
+
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.merka.stubgen.web.controller.LongPollingController;
+import org.merka.stubgen.web.controller.MulticastCommandController;
+import org.merka.stubgen.web.session.MessageManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+
+@ContextConfiguration(locations = {"classpath:spring/test-application-config.xml"})
+public class TestLongPolling extends AbstractJUnit4SpringContextTests
+{
+
+	@Autowired
+	private MessageManager messageManager;
+	
+	public MessageManager getMessageManager()
+	{
+		return messageManager;
+	}
+
+	public void setMessageManager(MessageManager messageManager)
+	{
+		this.messageManager = messageManager;
+	}
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception
+	{
+	}
+
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception
+	{
+	}
+
+	@Before
+	public void setUp() throws Exception
+	{
+	}
+
+	@After
+	public void tearDown() throws Exception
+	{
+	}
+
+	@Test
+	public void testLongPolling() throws InterruptedException
+	{
+		ArrayList<Thread> joiningThreads = new ArrayList<>();
+		for (int i = 0; i < 3; i++)
+		{
+			LongPollingRequestor requestor = new LongPollingRequestor(getMessageManager());
+			Thread executionThread = new Thread(requestor, "requestor" + i);
+			joiningThreads.add(executionThread);
+			executionThread.start();
+//			Thread.yield();
+		}
+		
+		MulticastCommandController multicastController = new MulticastCommandController();
+		multicastController.setMessageManager(messageManager);
+		logger.info("Sleeping...");
+		Thread.sleep(500);
+		logger.info("Wake up: showdown!");
+		multicastController.sendAll();
+//		Thread.yield();
+		for(Thread t : joiningThreads)
+		{
+			t.join();
+		}
+	}
+
+}

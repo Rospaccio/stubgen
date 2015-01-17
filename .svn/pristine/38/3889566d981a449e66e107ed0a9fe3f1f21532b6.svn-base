@@ -1,0 +1,37 @@
+package org.merka.stubgen.web.test.integration;
+
+import org.merka.stubgen.web.controller.LongPollingController;
+import org.merka.stubgen.web.session.MessageManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class LongPollingRequestor implements Runnable
+{
+	private static transient Logger logger = LoggerFactory.getLogger(LongPollingRequestor.class);
+	private LongPollingController controller;
+	
+	public LongPollingController getController()
+	{
+		return controller;
+	}
+
+	public void setController(LongPollingController controller)
+	{
+		this.controller = controller;
+	}
+
+	public LongPollingRequestor(MessageManager messageManager)
+	{
+		this.controller = new LongPollingController();
+		controller.setMessageManager(messageManager);
+	}
+	
+	@Override
+	public void run()
+	{
+		logger.info("LongPolling requestor " + toString() + " running...");
+		String response = controller.poll();
+		logger.info("LongPolling requestor " + toString() + " received response: " + response);
+	}
+	
+}

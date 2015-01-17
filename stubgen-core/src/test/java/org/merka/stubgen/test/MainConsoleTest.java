@@ -1,0 +1,76 @@
+package org.merka.stubgen.test;
+
+import java.io.PrintStream;
+import java.util.List;
+
+import org.merka.stubgen.MockObjectGenerator;
+import org.merka.stubgen.stupiddto.BoxObjectContainer;
+import org.merka.stubgen.stupiddto.ComplexTestObject;
+import org.merka.stubgen.stupiddto.Detail;
+import org.merka.stubgen.stupiddto.TestObject;
+
+public class MainConsoleTest
+{
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args)
+	{
+		try
+		{
+			MockObjectGenerator generator = new MockObjectGenerator();
+			TestObject mock = (TestObject) generator.generate(TestObject.class);
+			
+			PrintStream out = System.out;
+			
+			out.println(mock.getStringField1());
+			out.println(mock.getStringField2());
+			out.println(mock.getIntField());
+			out.println(mock.getDetail());
+			if(mock.getDetail() != null)
+			{
+				out.println(mock.getDetail().getDescription());
+				out.println(mock.getDetail().isValid());
+			}
+			
+			TestObject prototype = new TestObject("prototype", "prototype");
+			prototype.setDetail(new Detail());
+			prototype.setNestedReference(new TestObject());
+			mock = generator.generate(prototype);
+			
+			out.println("------------------------\n\n" + mock.getStringField1());
+			out.println(mock.getStringField2());
+			out.println(mock.getIntField());
+			out.println(mock.getDetail());
+			if(mock.getDetail() != null)
+			{
+				out.println(mock.getDetail().getDescription());
+				out.println(mock.getDetail().isValid());
+			}
+			
+			ComplexTestObject.TestType type = (ComplexTestObject.TestType)generator.generate(ComplexTestObject.TestType.class);
+			out.println(type);
+			
+			// a little test on Jackson
+//			ObjectMapper mapper = new ObjectMapper();
+//			ComplexTestObject cPrototype = mapper.readValue(new File("json/complex.json"), ComplexTestObject.class);
+//			out.print(prototype);
+			
+//			ComplexTestObject complex = (ComplexTestObject)generator.generate(ComplexTestObject.class);
+//			out.println(complex);
+//			mapper.writeValue(out, complex);
+			
+			BoxObjectContainer container = (BoxObjectContainer) generator.generate(BoxObjectContainer.class);
+			out.println(container);
+			
+			List<TestObject> list = (List<TestObject>)generator.generate(List.class);
+			out.println(list);
+		}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+		}
+	}
+
+}

@@ -1,0 +1,96 @@
+package org.merka.stubgen.test;
+
+import java.util.GregorianCalendar;
+
+public class TestObject
+{
+	
+	protected String stringField1;
+	protected String stringField2;
+	protected int intField;
+	protected Integer integerField;
+	protected Detail detail;
+	protected GregorianCalendar calendar;
+	protected TestObject nestedReference;
+	
+	public TestObject getNestedReference()
+	{
+		return nestedReference;
+	}
+
+	public void setNestedReference(TestObject nestedReference)
+	{
+		this.nestedReference = nestedReference;
+	}
+
+	public Integer getIntegerField()
+	{
+		return integerField;
+	}
+
+	public void setIntegerField(Integer integerField)
+	{
+		this.integerField = integerField;
+	}
+
+	public GregorianCalendar getCalendar()
+	{
+		return calendar;
+	}
+
+	public void setCalendar(GregorianCalendar calendar)
+	{
+		this.calendar = calendar;
+	}
+
+	public int getIntField()
+	{
+		return intField;
+	}
+
+	public void setIntField(int intField)
+	{
+		this.intField = intField;
+	}
+
+	public Detail getDetail()
+	{
+		return detail;
+	}
+
+	public void setDetail(Detail detail)
+	{
+		this.detail = detail;
+	}
+
+	public String getStringField1()
+	{
+		return stringField1;
+	}
+
+	public void setStringField1(String stringField1)
+	{
+		this.stringField1 = stringField1;
+	}
+
+	public String getStringField2()
+	{
+		return stringField2;
+	}
+
+	public void setStringField2(String stringField2)
+	{
+		this.stringField2 = stringField2;
+	}
+
+	public TestObject(String stringField1, String stringField2) 
+	{
+		super();
+		this.stringField1 = stringField1;
+		this.stringField2 = stringField2;
+	}
+	
+	public TestObject()
+	{
+	}
+}

@@ -1,0 +1,53 @@
+package org.merka.stubgen.web.test.integration;
+
+import static org.junit.Assert.*;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
+//@ContextConfiguration(value = {"stubgen-web-test-context.xml"})
+public class TestStubGeneratorService
+{
+	public static final String SERVICE_URL = "http://localhost:8080/service/generate";
+	
+	@Autowired
+	private String serviceUrl = SERVICE_URL;  
+	
+	public String getServiceUrl()
+	{
+		return serviceUrl;
+	}
+
+	public void setServiceUrl(String serviceUrl)
+	{
+		this.serviceUrl = serviceUrl;
+	}
+
+	@Test
+	public void test() throws URISyntaxException
+	{
+		HttpClient client = HttpClientBuilder.create().build();
+		
+		HttpPost post = new HttpPost(new URI(getServiceUrl()));
+		
+		
+	}
+
+}

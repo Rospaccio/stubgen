@@ -1,0 +1,11 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.merka</groupId>
+    <artifactId>stubgen-root</artifactId>
+    <version>1.0.0</version>
+  </parent>
+  <artifactId>stubgen-stupid-dto</artifactId>
+  <name>Stubgen Stupid DTO</name>
+  <description>A simple and stupid DTO library to test the stubgen system</description>
+</project>

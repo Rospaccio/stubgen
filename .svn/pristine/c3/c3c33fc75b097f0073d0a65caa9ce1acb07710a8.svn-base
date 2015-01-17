@@ -1,0 +1,72 @@
+package org.merka.stubgen;
+
+import java.lang.reflect.Method;
+import java.util.List;
+
+
+public class MockGenUtils
+{
+
+	public static final String SETTER_PREFIX = "set";
+
+	public static boolean isSetter(Method method)
+	{
+		boolean startsWithOk = method.getName().startsWith(SETTER_PREFIX);
+		boolean hasOneParameter = method.getParameterTypes().length == 1;
+		boolean isSetter = startsWithOk && hasOneParameter;
+		return isSetter;
+	}
+	
+	public static boolean isGetter(Method method)
+	{
+		boolean startsWithGet = method.getName().startsWith("get") || method.getName().startsWith("is");
+		boolean hasOneParameter = method.getParameterTypes().length == 0;
+		boolean isGetter = startsWithGet && hasOneParameter;
+		return isGetter;
+	}
+	
+	public static boolean isMockable(Class<?> theClass)
+	{
+		return true;
+	}
+	
+	public static boolean isList(Class<?> theClass)
+	{
+		if(theClass.equals(List.class))
+		{
+			return true;
+		}
+		else 
+		{
+			Class<?>[] extendetInterfaces = theClass.getInterfaces();
+			for(Class<?> interf : extendetInterfaces)
+			{
+				if(isList(interf))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean isIterable(Class<?> theClass)
+	{
+		if(theClass.equals(Iterable.class))
+		{
+			return true;
+		}
+		else 
+		{
+			Class<?>[] extendetInterfaces = theClass.getInterfaces();
+			for(Class<?> interf : extendetInterfaces)
+			{
+				if(isIterable(interf))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+}
